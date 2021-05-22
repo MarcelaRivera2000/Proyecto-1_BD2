@@ -1,67 +1,61 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.mycompany.proyecto1bd2;
+
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Result;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
+import org.neo4j.driver.Bookmark;
 
 import static org.neo4j.driver.Values.parameters;
+import static org.neo4j.driver.SessionConfig.builder;
+import org.neo4j.driver.TransactionWork;
 
-/**
- *
- * @author HP implements AutoCloseable
- */
 public class Neo4jCo implements AutoCloseable{
-
     private final Driver driver;
 
-    public Neo4jCo( String uri, String user, String password )
-    {
-        driver = GraphDatabase.driver( uri, AuthTokens.basic( user, password ) );
+    public Neo4jCo( String uri, String user, String password ){
+        driver = GraphDatabase.driver( uri, AuthTokens.basic( user, password ));
     }
 
-    @Override
-    public void close() throws Exception
-    {
+    public void close() throws Exception{
         driver.close();
     }
-
-    public void printGreeting( final String message )
+    
+    public long addAlumno( final String name,final int id,final String user,final String pass ){
+    try ( Session session = driver.session() ){
+        session.writeTransaction( new TransactionWork<Void>(){
+            @Override
+            public Void execute( Transaction tx ){
+                return createPersonNode( tx, name,id,user,pass );
+            }});
+        return session.readTransaction( new TransactionWork<Long>(){
+            @Override
+            public Long execute( Transaction tx ){
+                return matchPersonNode( tx, name ,id,user,pass);
+            }});
+    }
+}
+    private static Void createPersonNode( Transaction tx, String name, int id, String user, String pass )
     {
-        try ( Session session = driver.session() )
-        {
-            String greeting = session.writeTransaction( new TransactionWork<String>()
-            {
-                @Override
-                public String execute( Transaction tx )
-                {
-                    Result result = tx.run( "CREATE (a:Greeting) " +
-                                                     "SET a.message = $message " +
-                                                     "RETURN a.message + ', from node ' + id(a)",
-                            parameters( "message", message ) );
-                    return result.single().get( 0 ).asString();
-                }
-            } );
-            System.out.println( greeting );
-        }
+    tx.run( "CREATE (a:Alumno{nombre:$nombre, id:$id, password:$pass, usuario:$usuario})", parameters("nombre", name, "id", id, "pass", pass, "usuario", user) );
+    return null;
     }
 
-    public static void main( String... args ) throws Exception
+    private static long matchPersonNode( Transaction tx, String name, int id, String user, String pass )
     {
-        try ( Neo4jCo greeter = new Neo4jCo( "bolt://localhost:7687", "Admin", "1234" ) )
-        {
-            greeter.printGreeting( "hello, world" );
-        }
-        System.out.println("LLEGO");
+    Result result = tx.run( "MATCH (a:Alumno{nombre:$nombre, id:$id, password:$pass, usuario:$usuario}) RETURN id(a)", parameters("nombre", name, "id", id, "pass", pass, "usuario", user) );
+    return result.single().get( 0 ).asLong();
     }
-        
+    
 }
    
 
