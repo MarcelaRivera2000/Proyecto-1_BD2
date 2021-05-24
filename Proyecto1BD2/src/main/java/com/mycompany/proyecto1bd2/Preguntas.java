@@ -12,12 +12,15 @@ package com.mycompany.proyecto1bd2;
 public class Preguntas {
     public int ID,IDClase;
     public String Titulo,Descripcion;
+    public boolean respuesta,puesta;
 
-    public Preguntas(int ID, int IDClase, String Titulo, String Descripcion) {
+    public Preguntas(int ID, int IDClase, String Titulo, String Descripcion,boolean respuesta) {
         this.ID = ID;
         this.IDClase = IDClase;
         this.Titulo = Titulo;
         this.Descripcion = Descripcion;
+        this.respuesta=respuesta;
+        this.puesta=false;
     }
 
     public Preguntas() {
@@ -54,6 +57,23 @@ public class Preguntas {
     public void setDescripcion(String Descripcion) {
         this.Descripcion = Descripcion;
     }
+
+    public boolean getRespuesta() {
+        return respuesta;
+    }
+
+    public void setRespuesta(boolean respuesta) {
+        this.respuesta = respuesta;
+    }
+
+    public boolean getPuesta() {
+        return puesta;
+    }
+
+    public void setPuesta(boolean puesta) {
+        this.puesta = puesta;
+    }
+    
     
     
 }
